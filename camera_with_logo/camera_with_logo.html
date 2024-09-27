@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מצלמה עם לוגו</title>
+    <style>
+        #camera-view, #captured-image {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+        }
+        #logo {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 100px;
+            z-index: 10;
+        }
+        .container {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* עיצוב הכפתור */
+        #capture-button {
+            background-color: #FFA500; /* צבע כתום */
+            color: #FFFFFF; /* טקסט לבן */
+            border: 2px solid #1E90FF; /* מסגרת כחולה */
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        /* שינוי צבע כשהעכבר עובר על הכפתור */
+        #capture-button:hover {
+            background-color: #1E90FF; /* צבע כחול */
+            color: #FFFFFF; /* טקסט לבן */
+            border-color: #FFA500; /* מסגרת כתומה */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>צילום עם לוגו</h1>
+
+    <div class="container">
+        <video id="camera-view" autoplay playsinline></video>
+        <img id="logo" src="logo.png" alt="לוגו">
+    </div>
+    
+    <button id="capture-button">צלם תמונה</button>
+    <canvas id="captured-image" style="display:none;"></canvas>
+
+    <script>
+        const cameraView = document.getElementById('camera-view');
+        const captureButton = document.getElementById('capture-button');
+        const capturedImage = document.getElementById('captured-image');
+        const logo = document.getElementById('logo');
+
+        // גישה למצלמה של המכשיר
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                cameraView.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("שגיאה בגישה למצלמה: ", err);
+            });
+
+        captureButton.addEventListener('click', () => {
+            const context = capturedImage.getContext('2d');
+            const width = cameraView.videoWidth;
+            const height = cameraView.videoHeight;
+
+            // הגדרת מימדי הקנבס
+            capturedImage.width = width;
+            capturedImage.height = height;
+
+            // ציור פריים הווידאו על הקנבס
+            context.drawImage(cameraView, 0, 0, width, height);
+
+            // הוספת הלוגו על התמונה
+            const logoWidth = logo.width;
+            const logoHeight = logo.height;
+            context.drawImage(logo, 10, height - logoHeight - 10, logoWidth, logoHeight);
+
+            // שמירת התמונה למכשיר
+            capturedImage.toBlob(blob => {
+                const imageUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = imageUrl;
+                a.download = 'photo_with_logo.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }, 'image/png');
+        });
+    </script>
+
+</body>
+</html>
